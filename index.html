@@ -121,8 +121,8 @@
                 <option value="Other">Other</option>
             </select><br>
 
-            <label for="model" id="model-label">Product Model:</label>
-            <select id="model" name="model" required>
+            <label for="model" id="model-label" style="display: none;">Product Model:</label>
+            <select id="model" name="model" style="display: none;">
                 <!-- Dynamic options -->
             </select><br>
 
@@ -142,11 +142,12 @@
             <input type="submit" value="Submit">
         </form>
     </div>
+    
     <script>
         const models = {
-            "GFX": { "GFX100S II": ["Black"] },
-            "X-Series": { "X-T50": ["Black", "Silver"], "X-M5": ["Silver", "Black"] },
-            "XF Lenses": { "XF16-50mm F2.8-4.8 R LM WR": ["Black"], "XF16-55mm F2.8 R LM WR II": ["Black"] },
+            "GFX": { "GFX 50S": ["Black"], "GFX 100S II": ["Black"], "GFX 50R": ["Black"] },
+            "X-Series": { "X-T50": ["Black", "Silver"], "X-M5": ["Silver", "Black"], "X-T5": ["Black", "Silver"] },
+            "XF Lenses": { "XF16-55mm F2.8 R LM WR II": ["Black"], "XF50mm f/1.0 R WR": ["Black"] },
             "GF Lenses": { "GF500mm F5.6 R LM OIS WR": ["Black"] },
             "Printer Repair": {
                 "Thermal": ["ASK-2000", "ASK-2500", "ASK-300", "ASK-400", "ASK-500"],
@@ -159,10 +160,8 @@
         $(document).ready(function() {
             $('#repair-type').on('change', function() {
                 const type = $(this).val();
-                $('#product-type, #printer-category, #software-category').hide();
-                $('#product-type-label, #printer-category-label, #software-category-label').hide();
-                $('#model, #color').hide();
-                $('#model-label, #color-label').hide();
+                $('#product-type, #printer-category, #software-category, #model, #color').hide();
+                $('#product-type-label, #printer-category-label, #software-category-label, #model-label, #color-label').hide();
                 $('#model').empty();
                 $('#color').empty();
                 $('#message').hide();
@@ -192,18 +191,15 @@
                 }
             });
 
-            $('#model').on('change', function() {
-                const selectedModel = $(this).val();
-                const productType = $('#product-type').val();
-                $('#color').empty();
-                $('#color').hide();
-                $('#color-label').hide();
-
-                if (models[productType] && models[productType][selectedModel]) {
-                    $('#color').show();
-                    $('#color-label').show();
-                    models[productType][selectedModel].forEach(color => {
-                        $('#color').append(new Option(color, color));
+            $('#printer-category').on('change', function() {
+                const category = $(this).val();
+                $('#model').empty();
+                $('#model').show();
+                $('#model-label').show();
+                $('#message').hide();
+                if (models["Printer Repair"][category]) {
+                    models["Printer Repair"][category].forEach(model => {
+                        $('#model').append(new Option(model, model));
                     });
                 }
             });
