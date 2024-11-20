@@ -93,25 +93,13 @@
                 <option value="Printer Repair">Printer Repair</option>
             </select><br>
 
-            <label for="model-category" id="model-category-label" style="display: none;">Model Category:</label>
-            <select id="model-category" name="model-category" style="display: none;">
-                <option value="">Select Model Category</option>
-                <option value="GFX">GFX</option>
-                <option value="X-Series">X-Series</option>
-                <option value="XF Lenses">XF Lenses</option>
-                <option value="GF Lenses">GF Lenses</option>
-            </select><br>
-
-            <label for="printer-type" id="printer-type-label" style="display: none;">Printer Type:</label>
-            <select id="printer-type" name="printer-type" style="display: none;">
-                <option value="">Select Printer Type</option>
-                <option value="Thermal">Thermal</option>
-                <option value="Drylab">Drylab</option>
-                <option value="Wetlab">Wetlab</option>
-            </select><br>
-
             <label for="model">Product Model:</label>
-            <select id="model" name="model" required>
+            <select id="model" name="model" required style="display: none;">
+                <!-- Dynamic options -->
+            </select><br>
+
+            <label for="color" id="color-label" style="display: none;">Color:</label>
+            <select id="color" name="color" style="display: none;">
                 <!-- Dynamic options -->
             </select><br>
 
@@ -127,54 +115,52 @@
     <script>
         const models = {
             "Camera/Lens Repair": {
-                "GFX": { "GFX100S II": "Black (2024)" },
-                "X-Series": { "X-T50": "Black/Silver (2024)", "X-M5": "Silver (2024), Black (2025)" },
-                "XF Lenses": {
-                    "XF16-50mm F2.8-4.8 R LM WR": "Black (2024)",
-                    "XF16-55mm F2.8 R LM WR II": "Black (2024)"
-                },
-                "GF Lenses": { "GF500mm F5.6 R LM OIS WR": "Black (2024)" }
+                "GFX100S II": { "colors": ["Black"] },
+                "X-T50": { "colors": ["Black", "Silver"] },
+                "X-M5": { "colors": ["Silver", "Black"] },
+                "XF16-50mm F2.8-4.8 R LM WR": { "colors": ["Black"] },
+                "XF16-55mm F2.8 R LM WR II": { "colors": ["Black"] },
+                "GF500mm F5.6 R LM OIS WR": { "colors": ["Black"] }
             },
             "Printer Repair": {
-                "Thermal": { "ASK-2000": "2007", "ASK-2500": "2010", "ASK-300": "2018" },
-                "Drylab": { "Frontier DE100": "2018", "Frontier-S DX100": "2013" },
-                "Wetlab": { "Frontier DL650": "2014", "Frontier DL600": "2011" }
+                "Thermal": ["ASK-2000", "ASK-2500", "ASK-300"],
+                "Drylab": ["Frontier DE100", "Frontier-S DX100"],
+                "Wetlab": ["Frontier DL650", "Frontier DL600"]
             }
         };
 
         $(document).ready(function() {
             $('#repair-type').on('change', function() {
                 const type = $(this).val();
-                $('#model-category, #printer-type').hide();
-                $('#model-category-label, #printer-type-label').hide();
+                $('#model, #color').hide();
+                $('#color-label').hide();
+                $('#model').empty();
+                $('#color').empty();
 
                 if (type === "Camera/Lens Repair") {
-                    $('#model-category').show();
-                    $('#model-category-label').show();
+                    $('#model').show();
+                    Object.keys(models["Camera/Lens Repair"]).forEach(key => {
+                        $('#model').append(new Option(key, key));
+                    });
                 } else if (type === "Printer Repair") {
-                    $('#printer-type').show();
-                    $('#printer-type-label').show();
-                }
-
-                $('#model').empty();
-            });
-
-            $('#model-category').on('change', function() {
-                const category = $(this).val();
-                $('#model').empty();
-                if (category && models["Camera/Lens Repair"][category]) {
-                    Object.keys(models["Camera/Lens Repair"][category]).forEach(key => {
-                        $('#model').append(new Option(`${key} (${models["Camera/Lens Repair"][category][key]})`, key));
+                    $('#model').show();
+                    Object.keys(models["Printer Repair"]).forEach(key => {
+                        $('#model').append(new Option(key, key));
                     });
                 }
             });
 
-            $('#printer-type').on('change', function() {
-                const type = $(this).val();
-                $('#model').empty();
-                if (type && models["Printer Repair"][type]) {
-                    Object.keys(models["Printer Repair"][type]).forEach(key => {
-                        $('#model').append(new Option(`${key} (${models["Printer Repair"][type][key]})`, key));
+            $('#model').on('change', function() {
+                const selectedModel = $(this).val();
+                $('#color').empty();
+                $('#color').hide();
+                $('#color-label').hide();
+
+                if (models["Camera/Lens Repair"][selectedModel]) {
+                    $('#color').show();
+                    $('#color-label').show();
+                    models["Camera/Lens Repair"][selectedModel].colors.forEach(color => {
+                        $('#color').append(new Option(color, color));
                     });
                 }
             });
