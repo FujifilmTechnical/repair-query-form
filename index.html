@@ -21,7 +21,7 @@
         }
         .container {
             max-width: 600px;
-            background-color: rgba(255, 255, 255, 0.9); /* Slight transparency */
+            background-color: rgba(255, 255, 255, 0.9);
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
@@ -76,33 +76,32 @@
             font-weight: bold;
             display: none;
         }
-        .info-message {
-            color: green;
-            font-weight: bold;
-            display: none;
-        }
-        .select2-container {
-            width: 100% !important;
-        }
     </style>
-    <!-- Include jQuery and Select2 CSS and JS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 </head>
 <body>
     <div class="container">
         <h2>Collected. Repaired. Delivered.</h2>
-        <h3>Now you can arrange to have your Fujifilm X-series collected from your home, repaired and returned back to you.</h3>
+        <h3>Now you can arrange to have your Fujifilm product repaired with ease.</h3>
         <img src="logo.png" alt="Fujifilm Logo" class="logo">
         <h1>Submit a Repair Query</h1>
-        <form onsubmit="generateMailto(); return false;">
+        <form>
             <label for="repair-type">Repair Type:</label>
-            <select id="repair-type" name="repair-type" required>
+            <select id="repair-type" name="repair-type">
                 <option value="">Select Repair Type</option>
                 <option value="Camera/Lens Repair">Camera/Lens Repair</option>
                 <option value="Printer Repair">Printer Repair</option>
             </select><br>
+
+            <label for="model-category" id="model-category-label" style="display: none;">Model Category:</label>
+            <select id="model-category" name="model-category" style="display: none;">
+                <option value="">Select Model Category</option>
+                <option value="GFX">GFX</option>
+                <option value="X-Series">X-Series</option>
+                <option value="XF Lenses">XF Lenses</option>
+                <option value="GF Lenses">GF Lenses</option>
+            </select><br>
+
             <label for="printer-type" id="printer-type-label" style="display: none;">Printer Type:</label>
             <select id="printer-type" name="printer-type" style="display: none;">
                 <option value="">Select Printer Type</option>
@@ -110,118 +109,76 @@
                 <option value="Drylab">Drylab</option>
                 <option value="Wetlab">Wetlab</option>
             </select><br>
+
             <label for="model">Product Model:</label>
             <select id="model" name="model" required>
-                <!-- Options will be populated dynamically -->
+                <!-- Dynamic options -->
             </select><br>
-            <label for="message">Additional Message:</label>
-            <div id="message" class="message"></div>
+
             <label for="serial">Serial Number:</label>
             <input type="text" id="serial" name="serial" required><br>
+
             <label for="issue">Detailed Description of Issue:</label>
             <textarea id="issue" name="issue" required></textarea><br>
+
             <input type="submit" value="Submit">
         </form>
     </div>
     <script>
         const models = {
             "Camera/Lens Repair": {
-                "Cameras": {
-                    "GFX100S II": "Black (2024)",
-                    "X-T50": "Black/Silver (2024)",
-                    "X-M5": "Silver (2024), Black (2025)"
-                },
-                "Lenses": {
+                "GFX": { "GFX100S II": "Black (2024)" },
+                "X-Series": { "X-T50": "Black/Silver (2024)", "X-M5": "Silver (2024), Black (2025)" },
+                "XF Lenses": {
                     "XF16-50mm F2.8-4.8 R LM WR": "Black (2024)",
-                    "XF16-55mm F2.8 R LM WR II": "Black (2024)",
-                    "XF500mm F5.6 R LM OIS WR": "Black (2024)",
-                    "GF500mm F5.6 R LM OIS WR": "Black (2024)"
-                }
+                    "XF16-55mm F2.8 R LM WR II": "Black (2024)"
+                },
+                "GF Lenses": { "GF500mm F5.6 R LM OIS WR": "Black (2024)" }
             },
             "Printer Repair": {
-                "Thermal": {
-                    "ASK-2000": "2007",
-                    "ASK-2500": "2010",
-                    "ASK-300": "2018",
-                    "ASK-400": "2020",
-                    "ASK-500": "2022"
-                },
-                "Drylab": {
-                    "Frontier-S DX100": "2013",
-                    "Frontier DE100": "2018",
-                    "Frontier DE100-XD": "2022",
-                    "CX3240": "2021"
-                },
-                "Wetlab": {
-                    "Frontier Wetlab series": "2004",
-                    "Frontier DL650": "2014",
-                    "Frontier DL600": "2011"
-                }
+                "Thermal": { "ASK-2000": "2007", "ASK-2500": "2010", "ASK-300": "2018" },
+                "Drylab": { "Frontier DE100": "2018", "Frontier-S DX100": "2013" },
+                "Wetlab": { "Frontier DL650": "2014", "Frontier DL600": "2011" }
             }
         };
 
         $(document).ready(function() {
-            $('#repair-type').select2();
-            $('#model').select2();
-            $('#printer-type').select2();
-
             $('#repair-type').on('change', function() {
-                updatePrinterTypeOptions();
+                const type = $(this).val();
+                $('#model-category, #printer-type').hide();
+                $('#model-category-label, #printer-type-label').hide();
+
+                if (type === "Camera/Lens Repair") {
+                    $('#model-category').show();
+                    $('#model-category-label').show();
+                } else if (type === "Printer Repair") {
+                    $('#printer-type').show();
+                    $('#printer-type-label').show();
+                }
+
+                $('#model').empty();
+            });
+
+            $('#model-category').on('change', function() {
+                const category = $(this).val();
+                $('#model').empty();
+                if (category && models["Camera/Lens Repair"][category]) {
+                    Object.keys(models["Camera/Lens Repair"][category]).forEach(key => {
+                        $('#model').append(new Option(`${key} (${models["Camera/Lens Repair"][category][key]})`, key));
+                    });
+                }
             });
 
             $('#printer-type').on('change', function() {
-                updateModelOptions();
+                const type = $(this).val();
+                $('#model').empty();
+                if (type && models["Printer Repair"][type]) {
+                    Object.keys(models["Printer Repair"][type]).forEach(key => {
+                        $('#model').append(new Option(`${key} (${models["Printer Repair"][type][key]})`, key));
+                    });
+                }
             });
         });
-
-        function updatePrinterTypeOptions() {
-            const repairType = document.getElementById('repair-type').value;
-            const printerTypeLabel = document.getElementById('printer-type-label');
-            const printerTypeSelect = document.getElementById('printer-type');
-            const modelSelect = document.getElementById('model');
-            printerTypeLabel.style.display = 'none';
-            printerTypeSelect.style.display = 'none';
-            modelSelect.innerHTML = '';
-
-            if (repairType === "Printer Repair") {
-                printerTypeLabel.style.display = 'block';
-                printerTypeSelect.style.display = 'block';
-            } else if (repairType === "Camera/Lens Repair") {
-                populateCameraLensOptions();
-            }
-        }
-
-        function populateCameraLensOptions() {
-            const repairType = document.getElementById('repair-type').value;
-            const modelSelect = document.getElementById('model');
-            modelSelect.innerHTML = '';
-            if (repairType) {
-                const items = models[repairType];
-                for (const [key, value] of Object.entries(items)) {
-                    for (const [model, details] of Object.entries(value)) {
-                        const option = document.createElement('option');
-                        option.value = model;
-                        option.text = `${model} (${details})`;
-                        modelSelect.appendChild(option);
-                    }
-                }
-            }
-        }
-
-        function updateModelOptions() {
-            const printerType = document.getElementById('printer-type').value;
-            const modelSelect = document.getElementById('model');
-            modelSelect.innerHTML = '';
-            if (printerType) {
-                const items = models["Printer Repair"][printerType];
-                for (const [model, year] of Object.entries(items)) {
-                    const option = document.createElement('option');
-                    option.value = model;
-                    option.text = `${model} (${year})`;
-                    modelSelect.appendChild(option);
-                }
-            }
-        }
     </script>
 </body>
 </html>
