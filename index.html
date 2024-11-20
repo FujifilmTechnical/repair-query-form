@@ -94,6 +94,15 @@
                 <option value="Software Issue">Software Issue</option>
             </select><br>
 
+            <label for="product-type" id="product-type-label" style="display: none;">Product Type:</label>
+            <select id="product-type" name="product-type" style="display: none;">
+                <option value="">Select Product Type</option>
+                <option value="GFX">GFX</option>
+                <option value="X-Series">X-Series</option>
+                <option value="XF Lenses">XF Lenses</option>
+                <option value="GF Lenses">GF Lenses</option>
+            </select><br>
+
             <label for="printer-category" id="printer-category-label" style="display: none;">Printer Type:</label>
             <select id="printer-category" name="printer-category" style="display: none;">
                 <option value="">Select Printer Type</option>
@@ -135,30 +144,23 @@
     </div>
     <script>
         const models = {
-            "Camera/Lens Repair": {
-                "GFX100S II": { "colors": ["Black"], "year": 2024 },
-                "X-T50": { "colors": ["Black", "Silver"], "year": 2024 },
-                "X-M5": { "colors": ["Silver", "Black"], "year": 2025 },
-                "XF16-50mm F2.8-4.8 R LM WR": { "colors": ["Black"], "year": 2024 },
-                "XF16-55mm F2.8 R LM WR II": { "colors": ["Black"], "year": 2024 },
-                "GF500mm F5.6 R LM OIS WR": { "colors": ["Black"], "year": 2024 }
-            },
+            "GFX": { "GFX100S II": ["Black"] },
+            "X-Series": { "X-T50": ["Black", "Silver"], "X-M5": ["Silver", "Black"] },
+            "XF Lenses": { "XF16-50mm F2.8-4.8 R LM WR": ["Black"], "XF16-55mm F2.8 R LM WR II": ["Black"] },
+            "GF Lenses": { "GF500mm F5.6 R LM OIS WR": ["Black"] },
             "Printer Repair": {
-                "Thermal": { "ASK-2000": 2007, "ASK-2500": 2010, "ASK-300": 2018, "ASK-400": 2020, "ASK-500": 2022 },
-                "Drylab": { "Frontier-S DX100": 2013, "Frontier DE100": 2018, "Frontier DE100-XD": 2022, "DL600": 2011, "DL650": 2014 },
-                "Wetlab": { "Frontier Wetlab series": 2004 },
-                "Toner": { "CX3240": 2021 }
-            },
-            "Software Issue": ["Kiosk/Order-it", "MS Workstation", "Print a Photie", "Other"]
+                "Thermal": ["ASK-2000", "ASK-2500", "ASK-300", "ASK-400", "ASK-500"],
+                "Drylab": ["Frontier-S DX100", "Frontier DE100", "DL600", "DL650"],
+                "Wetlab": ["Frontier Wetlab series"],
+                "Toner": ["CX3240"]
+            }
         };
-
-        const currentYear = new Date().getFullYear();
 
         $(document).ready(function() {
             $('#repair-type').on('change', function() {
                 const type = $(this).val();
-                $('#printer-category, #software-category').hide();
-                $('#printer-category-label, #software-category-label').hide();
+                $('#product-type, #printer-category, #software-category').hide();
+                $('#product-type-label, #printer-category-label, #software-category-label').hide();
                 $('#model, #color').hide();
                 $('#model-label, #color-label').hide();
                 $('#model').empty();
@@ -166,11 +168,8 @@
                 $('#message').hide();
 
                 if (type === "Camera/Lens Repair") {
-                    $('#model-label').show();
-                    $('#model').show();
-                    Object.keys(models["Camera/Lens Repair"]).forEach(key => {
-                        $('#model').append(new Option(key, key));
-                    });
+                    $('#product-type').show();
+                    $('#product-type-label').show();
                 } else if (type === "Printer Repair") {
                     $('#printer-category').show();
                     $('#printer-category-label').show();
@@ -180,36 +179,32 @@
                 }
             });
 
-            $('#printer-category').on('change', function() {
-                const category = $(this).val();
+            $('#product-type').on('change', function() {
+                const productType = $(this).val();
                 $('#model').empty();
                 $('#model').show();
                 $('#model-label').show();
                 $('#message').hide();
-                if (models["Printer Repair"][category]) {
-                    Object.keys(models["Printer Repair"][category]).forEach(model => {
-                        const year = models["Printer Repair"][category][model];
-                        $('#model').append(new Option(`${model} (${year})`, model));
+                if (models[productType]) {
+                    Object.keys(models[productType]).forEach(model => {
+                        $('#model').append(new Option(model, model));
                     });
                 }
             });
 
             $('#model').on('change', function() {
                 const selectedModel = $(this).val();
-                $('#message').hide();
+                const productType = $('#product-type').val();
+                $('#color').empty();
+                $('#color').hide();
+                $('#color-label').hide();
 
-                // Check for camera year or printer year
-                if (models["Camera/Lens Repair"][selectedModel]) {
-                    const year = models["Camera/Lens Repair"][selectedModel].year;
-                    if (currentYear - year > 6) {
-                        $('#message').text("This camera is discontinued. Only basic cleaning and diagnostics are available.").show();
-                    }
-                } else {
-                    const selectedPrinterCategory = $('#printer-category').val();
-                    const year = models["Printer Repair"][selectedPrinterCategory]?.[selectedModel];
-                    if (year && currentYear - year > 10) {
-                        $('#message').text("This printer is older than 10 years and may not be repairable.").show();
-                    }
+                if (models[productType] && models[productType][selectedModel]) {
+                    $('#color').show();
+                    $('#color-label').show();
+                    models[productType][selectedModel].forEach(color => {
+                        $('#color').append(new Option(color, color));
+                    });
                 }
             });
         });
