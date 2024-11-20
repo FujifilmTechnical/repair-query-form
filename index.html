@@ -91,6 +91,7 @@
                 <option value="">Select Repair Type</option>
                 <option value="Camera/Lens Repair">Camera/Lens Repair</option>
                 <option value="Printer Repair">Printer Repair</option>
+                <option value="Software Issue">Software Issue</option>
             </select><br>
 
             <label for="printer-category" id="printer-category-label" style="display: none;">Printer Type:</label>
@@ -100,6 +101,15 @@
                 <option value="Drylab">Drylab</option>
                 <option value="Wetlab">Wetlab</option>
                 <option value="Toner">Toner</option>
+            </select><br>
+
+            <label for="software-category" id="software-category-label" style="display: none;">Software Issue:</label>
+            <select id="software-category" name="software-category" style="display: none;">
+                <option value="">Select Software Issue</option>
+                <option value="Kiosk/Order-it">Kiosk/Order-it</option>
+                <option value="MS Workstation">MS Workstation</option>
+                <option value="Print a Photie">Print a Photie</option>
+                <option value="Other">Other</option>
             </select><br>
 
             <label for="model">Product Model:</label>
@@ -136,14 +146,15 @@
                 "Drylab": ["Frontier-S DX100", "Frontier DE100", "Frontier DE100-XD", "DL600", "DL650"],
                 "Wetlab": ["Frontier Wetlab series (2004)"],
                 "Toner": ["CX3240"]
-            }
+            },
+            "Software Issue": ["Kiosk/Order-it", "MS Workstation", "Print a Photie", "Other"]
         };
 
         $(document).ready(function() {
             $('#repair-type').on('change', function() {
                 const type = $(this).val();
-                $('#printer-category').hide();
-                $('#printer-category-label').hide();
+                $('#printer-category, #software-category').hide();
+                $('#printer-category-label, #software-category-label').hide();
                 $('#model').empty();
                 $('#color').hide();
                 $('#color-label').hide();
@@ -156,6 +167,9 @@
                 } else if (type === "Printer Repair") {
                     $('#printer-category').show();
                     $('#printer-category-label').show();
+                } else if (type === "Software Issue") {
+                    $('#software-category').show();
+                    $('#software-category-label').show();
                 }
             });
 
