@@ -93,8 +93,17 @@
                 <option value="Printer Repair">Printer Repair</option>
             </select><br>
 
+            <label for="printer-category" id="printer-category-label" style="display: none;">Printer Type:</label>
+            <select id="printer-category" name="printer-category" style="display: none;">
+                <option value="">Select Printer Type</option>
+                <option value="Thermal">Thermal</option>
+                <option value="Drylab">Drylab</option>
+                <option value="Wetlab">Wetlab</option>
+                <option value="Toner">Toner</option>
+            </select><br>
+
             <label for="model">Product Model:</label>
-            <select id="model" name="model" required style="display: none;">
+            <select id="model" name="model" required>
                 <!-- Dynamic options -->
             </select><br>
 
@@ -123,29 +132,39 @@
                 "GF500mm F5.6 R LM OIS WR": { "colors": ["Black"] }
             },
             "Printer Repair": {
-                "Thermal": ["ASK-2000", "ASK-2500", "ASK-300"],
-                "Drylab": ["Frontier DE100", "Frontier-S DX100"],
-                "Wetlab": ["Frontier DL650", "Frontier DL600"]
+                "Thermal": ["ASK-2000", "ASK-2500", "ASK-300", "ASK-400", "ASK-500"],
+                "Drylab": ["Frontier-S DX100", "Frontier DE100", "Frontier DE100-XD", "DL600", "DL650"],
+                "Wetlab": ["Frontier Wetlab series (2004)"],
+                "Toner": ["CX3240"]
             }
         };
 
         $(document).ready(function() {
             $('#repair-type').on('change', function() {
                 const type = $(this).val();
-                $('#model, #color').hide();
-                $('#color-label').hide();
+                $('#printer-category').hide();
+                $('#printer-category-label').hide();
                 $('#model').empty();
-                $('#color').empty();
+                $('#color').hide();
+                $('#color-label').hide();
 
                 if (type === "Camera/Lens Repair") {
-                    $('#model').show();
+                    $('#model').empty();
                     Object.keys(models["Camera/Lens Repair"]).forEach(key => {
                         $('#model').append(new Option(key, key));
                     });
                 } else if (type === "Printer Repair") {
-                    $('#model').show();
-                    Object.keys(models["Printer Repair"]).forEach(key => {
-                        $('#model').append(new Option(key, key));
+                    $('#printer-category').show();
+                    $('#printer-category-label').show();
+                }
+            });
+
+            $('#printer-category').on('change', function() {
+                const category = $(this).val();
+                $('#model').empty();
+                if (models["Printer Repair"][category]) {
+                    models["Printer Repair"][category].forEach(model => {
+                        $('#model').append(new Option(model, model));
                     });
                 }
             });
