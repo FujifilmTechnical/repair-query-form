@@ -112,7 +112,7 @@
                 <option value="Other">Other</option>
             </select><br>
 
-            <label for="model">Product Model:</label>
+            <label for="model" id="model-label">Product Model:</label>
             <select id="model" name="model" required>
                 <!-- Dynamic options -->
             </select><br>
@@ -128,39 +128,46 @@
             <label for="issue">Detailed Description of Issue:</label>
             <textarea id="issue" name="issue" required></textarea><br>
 
+            <div id="message" class="message"></div>
+
             <input type="submit" value="Submit">
         </form>
     </div>
     <script>
         const models = {
             "Camera/Lens Repair": {
-                "GFX100S II": { "colors": ["Black"] },
-                "X-T50": { "colors": ["Black", "Silver"] },
-                "X-M5": { "colors": ["Silver", "Black"] },
-                "XF16-50mm F2.8-4.8 R LM WR": { "colors": ["Black"] },
-                "XF16-55mm F2.8 R LM WR II": { "colors": ["Black"] },
-                "GF500mm F5.6 R LM OIS WR": { "colors": ["Black"] }
+                "GFX100S II": { "colors": ["Black"], "year": 2024 },
+                "X-T50": { "colors": ["Black", "Silver"], "year": 2024 },
+                "X-M5": { "colors": ["Silver", "Black"], "year": 2025 },
+                "XF16-50mm F2.8-4.8 R LM WR": { "colors": ["Black"], "year": 2024 },
+                "XF16-55mm F2.8 R LM WR II": { "colors": ["Black"], "year": 2024 },
+                "GF500mm F5.6 R LM OIS WR": { "colors": ["Black"], "year": 2024 }
             },
             "Printer Repair": {
-                "Thermal": ["ASK-2000", "ASK-2500", "ASK-300", "ASK-400", "ASK-500"],
-                "Drylab": ["Frontier-S DX100", "Frontier DE100", "Frontier DE100-XD", "DL600", "DL650"],
-                "Wetlab": ["Frontier Wetlab series (2004)"],
-                "Toner": ["CX3240"]
+                "Thermal": { "ASK-2000": 2007, "ASK-2500": 2010, "ASK-300": 2018, "ASK-400": 2020, "ASK-500": 2022 },
+                "Drylab": { "Frontier-S DX100": 2013, "Frontier DE100": 2018, "Frontier DE100-XD": 2022, "DL600": 2011, "DL650": 2014 },
+                "Wetlab": { "Frontier Wetlab series": 2004 },
+                "Toner": { "CX3240": 2021 }
             },
             "Software Issue": ["Kiosk/Order-it", "MS Workstation", "Print a Photie", "Other"]
         };
+
+        const currentYear = new Date().getFullYear();
 
         $(document).ready(function() {
             $('#repair-type').on('change', function() {
                 const type = $(this).val();
                 $('#printer-category, #software-category').hide();
                 $('#printer-category-label, #software-category-label').hide();
+                $('#model, #color').hide();
+                $('#model-label, #color-label').hide();
                 $('#model').empty();
-                $('#color').hide();
-                $('#color-label').hide();
+                $('#color').empty();
+                $('#message').hide();
 
                 if (type === "Camera/Lens Repair") {
-                    $('#model').empty();
+                    $('#model-label').show();
+                    $('#model').show();
                     Object.keys(models["Camera/Lens Repair"]).forEach(key => {
                         $('#model').append(new Option(key, key));
                     });
@@ -176,25 +183,33 @@
             $('#printer-category').on('change', function() {
                 const category = $(this).val();
                 $('#model').empty();
+                $('#model').show();
+                $('#model-label').show();
+                $('#message').hide();
                 if (models["Printer Repair"][category]) {
-                    models["Printer Repair"][category].forEach(model => {
-                        $('#model').append(new Option(model, model));
+                    Object.keys(models["Printer Repair"][category]).forEach(model => {
+                        const year = models["Printer Repair"][category][model];
+                        $('#model').append(new Option(`${model} (${year})`, model));
                     });
                 }
             });
 
             $('#model').on('change', function() {
                 const selectedModel = $(this).val();
-                $('#color').empty();
-                $('#color').hide();
-                $('#color-label').hide();
+                $('#message').hide();
 
+                // Check for camera year or printer year
                 if (models["Camera/Lens Repair"][selectedModel]) {
-                    $('#color').show();
-                    $('#color-label').show();
-                    models["Camera/Lens Repair"][selectedModel].colors.forEach(color => {
-                        $('#color').append(new Option(color, color));
-                    });
+                    const year = models["Camera/Lens Repair"][selectedModel].year;
+                    if (currentYear - year > 6) {
+                        $('#message').text("This camera is discontinued. Only basic cleaning and diagnostics are available.").show();
+                    }
+                } else {
+                    const selectedPrinterCategory = $('#printer-category').val();
+                    const year = models["Printer Repair"][selectedPrinterCategory]?.[selectedModel];
+                    if (year && currentYear - year > 10) {
+                        $('#message').text("This printer is older than 10 years and may not be repairable.").show();
+                    }
                 }
             });
         });
